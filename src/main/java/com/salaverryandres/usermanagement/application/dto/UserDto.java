@@ -1,14 +1,18 @@
-package com.salaverryandres.usermanagement.dto;
+package com.salaverryandres.usermanagement.application.dto;
 
 import lombok.*;
+
+import java.util.Set;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserCreateRequestDto {
+public class UserDto {
+    private Long id;
     private String externalId;
     private String name;
     private String email;
     private String phone;
+    private Set<RoleDto> roles;
 }

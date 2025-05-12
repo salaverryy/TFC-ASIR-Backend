@@ -1,4 +1,4 @@
-package com.salaverryandres.usermanagement.entity;
+package com.salaverryandres.usermanagement.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -39,5 +39,4 @@ public class UserEntity {
     )
     private Set<RoleEntity> roles;
 
-    // Considera usar un @PrePersist para registrar timestamps si es útil
 }

@@ -1,4 +1,4 @@
-package com.salaverryandres.usermanagement.dto;
+package com.salaverryandres.usermanagement.application.dto;
 
 import lombok.*;
 

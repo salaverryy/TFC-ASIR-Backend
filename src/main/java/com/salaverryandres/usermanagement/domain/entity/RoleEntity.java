@@ -1,4 +1,4 @@
-package com.salaverryandres.usermanagement.entity;
+package com.salaverryandres.usermanagement.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

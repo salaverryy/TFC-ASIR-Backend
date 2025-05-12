@@ -1,6 +1,6 @@
-package com.salaverryandres.usermanagement.repository;
+package com.salaverryandres.usermanagement.domain.repository;
 
-import com.salaverryandres.usermanagement.entity.UserEntity;
+import com.salaverryandres.usermanagement.domain.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
