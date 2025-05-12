@@ -1,5 +1,6 @@
 package com.salaverryandres.usermanagement.infrastructure.service;
 
+import com.salaverryandres.usermanagement.domain.service.CognitoService;
 import com.salaverryandres.usermanagement.domain.service.UserService;
 import com.salaverryandres.usermanagement.application.dto.UserCreateRequestDto;
 import com.salaverryandres.usermanagement.application.dto.UserDto;
@@ -19,13 +20,28 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final CognitoService cognitoService;
 
     @Override
     public UserDto createUser(UserCreateRequestDto request) {
+        // 1. Crear en Cognito y obtener el externalId (sub)
+        String externalId = cognitoService.registerUser(
+                request.getName(),
+                request.getEmail(),
+                request.getPhone()
+        );
+
+        // 2. Convertir DTO a Entity y setear el externalId
         UserEntity entity = userMapper.toEntity(request);
+        entity.setExternalId(externalId);
+
+        // 3. Guardar en la base de datos
         UserEntity saved = userRepository.save(entity);
+
+        // 4. Retornar el resultado
         return userMapper.toDto(saved);
     }
+
 
     @Override
     public List<UserDto> getAllUsers() {
