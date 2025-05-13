@@ -5,7 +5,8 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.CognitoIden
 public interface CognitoService {
     /**
      * Registra un usuario en Cognito con el rol USER.
-     * @param name nombre del usuario
+     *
+     * @param name  nombre del usuario
      * @param email correo electrónico
      * @param phone teléfono (opcional)
      * @return sub del usuario (externalId)
@@ -13,6 +14,8 @@ public interface CognitoService {
     String registerUser(String name, String email, String phone) throws CognitoIdentityProviderException;
 
     void updateUserAttributes(String usernameOrSub, String name, String email, String phone);
+
+    void deleteUser(String username);
 
 }
 

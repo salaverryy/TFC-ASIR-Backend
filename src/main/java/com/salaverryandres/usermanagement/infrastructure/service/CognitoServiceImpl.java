@@ -1,6 +1,5 @@
 package com.salaverryandres.usermanagement.infrastructure.service;
 
-import com.salaverryandres.usermanagement.application.exception.BadRequestException;
 import com.salaverryandres.usermanagement.domain.service.CognitoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -90,6 +89,16 @@ public class CognitoServiceImpl implements CognitoService {
                 .build();
 
         cognitoClient.adminUpdateUserAttributes(request);
+    }
+
+    @Override
+    public void deleteUser(String username) {
+        AdminDeleteUserRequest request = AdminDeleteUserRequest.builder()
+                .userPoolId(userPoolId)
+                .username(username)
+                .build();
+
+        cognitoClient.adminDeleteUser(request);
     }
 
 }

@@ -101,8 +101,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUser(String externalId) {
-        userRepository.findByExternalId(externalId)
-                .ifPresent(userRepository::delete);
+        UserEntity user = userRepository.findByExternalId(externalId)
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+
+        try {
+            cognitoService.deleteUser(user.getEmail()); // usamos email como username en Cognito
+        } catch (UserNotFoundException e) {
+            throw new NotFoundException("Usuario no encontrado en Cognito");
+        } catch (CognitoIdentityProviderException e) {
+            log.error("Error al eliminar usuario en Cognito: {}", e.awsErrorDetails().errorMessage());
+            throw new RuntimeException("No se pudo eliminar el usuario en Cognito", e);
+        }
+
+        userRepository.delete(user);
     }
+
 }
 
