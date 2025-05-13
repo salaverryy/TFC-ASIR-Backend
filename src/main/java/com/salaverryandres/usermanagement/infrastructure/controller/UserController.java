@@ -20,4 +20,13 @@ public class UserController {
         UserDto user = userService.createUser(request);
         return ResponseEntity.ok(user);
     }
+
+    @PutMapping("/{externalId}")
+    public ResponseEntity<UserDto> updateUser(
+            @PathVariable String externalId,
+            @Valid @RequestBody UserCreateRequestDto request) {
+        UserDto updated = userService.updateUser(externalId, request);
+        return ResponseEntity.ok(updated);
+    }
+
 }

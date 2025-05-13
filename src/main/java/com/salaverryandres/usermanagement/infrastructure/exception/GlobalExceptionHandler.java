@@ -1,9 +1,11 @@
 package com.salaverryandres.usermanagement.infrastructure.exception;
 
 import com.salaverryandres.usermanagement.application.exception.BadRequestException;
+import com.salaverryandres.usermanagement.application.exception.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -23,5 +25,16 @@ public class GlobalExceptionHandler {
         );
     }
 
-    // Aquí podrías añadir más handlers para otras excepciones como NotFound, Unauthorized, etc.
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<?> handleNotFound(NotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "status", HttpStatus.NOT_FOUND.value(),
+                        "error", "Not Found",
+                        "message", ex.getMessage()
+                )
+        );
+    }
+
 }

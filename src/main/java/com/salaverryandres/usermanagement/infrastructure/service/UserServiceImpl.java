@@ -1,20 +1,19 @@
 package com.salaverryandres.usermanagement.infrastructure.service;
 
-import com.salaverryandres.usermanagement.application.exception.BadRequestException;
-import com.salaverryandres.usermanagement.domain.service.CognitoService;
-import com.salaverryandres.usermanagement.domain.service.UserService;
 import com.salaverryandres.usermanagement.application.dto.UserCreateRequestDto;
 import com.salaverryandres.usermanagement.application.dto.UserDto;
-import com.salaverryandres.usermanagement.domain.entity.UserEntity;
+import com.salaverryandres.usermanagement.application.exception.BadRequestException;
+import com.salaverryandres.usermanagement.application.exception.NotFoundException;
 import com.salaverryandres.usermanagement.application.mapper.UserMapper;
+import com.salaverryandres.usermanagement.domain.entity.UserEntity;
 import com.salaverryandres.usermanagement.domain.repository.UserRepository;
+import com.salaverryandres.usermanagement.domain.service.CognitoService;
+import com.salaverryandres.usermanagement.domain.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.CognitoIdentityProviderException;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.InvalidParameterException;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.UsernameExistsException;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
 
 import java.util.List;
 
@@ -74,15 +73,31 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto updateUser(String externalId, UserCreateRequestDto request) {
-        UserEntity existing = userRepository.findByExternalId(externalId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        UserEntity user = userRepository.findByExternalId(externalId)
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
 
-        existing.setName(request.getName());
-        existing.setEmail(request.getEmail());
-        existing.setPhone(request.getPhone());
+        try {
+            cognitoService.updateUserAttributes(externalId, request.getName(), request.getEmail(), request.getPhone());
+        } catch (UserNotFoundException e) {
+            throw new NotFoundException("Usuario no encontrado en Cognito");
+        } catch (AliasExistsException e) {
+            log.error("El alias ya existe en Cognito: {}", e.awsErrorDetails().errorMessage());
+            throw new BadRequestException("El alias ya existe en Cognito", e);
+        } catch (InvalidParameterException e) {
+            log.error("Parámetro inválido al actualizar usuario en Cognito: {}", e.awsErrorDetails().errorMessage());
+            throw new BadRequestException("Parámetro inválido al actualizar el usuario en Cognito", e);
+        } catch (CognitoIdentityProviderException e) {
+            log.error("Error al actualizar Cognito: {}", e.awsErrorDetails().errorMessage());
+            throw new RuntimeException("No se pudo actualizar el usuario en Cognito", e);
+        }
 
-        return userMapper.toDto(userRepository.save(existing));
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+        user.setPhone(request.getPhone());
+
+        return userMapper.toDto(userRepository.save(user));
     }
+
 
     @Override
     public void deleteUser(String externalId) {

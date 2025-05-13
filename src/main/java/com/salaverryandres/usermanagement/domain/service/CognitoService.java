@@ -11,5 +11,8 @@ public interface CognitoService {
      * @return sub del usuario (externalId)
      */
     String registerUser(String name, String email, String phone) throws CognitoIdentityProviderException;
+
+    void updateUserAttributes(String usernameOrSub, String name, String email, String phone);
+
 }
 

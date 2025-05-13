@@ -72,4 +72,24 @@ public class CognitoServiceImpl implements CognitoService {
 
         return sub;
     }
+
+    @Override
+    public void updateUserAttributes(String username, String name, String email, String phone) {
+        List<AttributeType> attributes = new ArrayList<>();
+        attributes.add(AttributeType.builder().name("name").value(name).build());
+        attributes.add(AttributeType.builder().name("email").value(email).build());
+
+        if (phone != null && !phone.isBlank()) {
+            attributes.add(AttributeType.builder().name("phone_number").value(phone).build());
+        }
+
+        AdminUpdateUserAttributesRequest request = AdminUpdateUserAttributesRequest.builder()
+                .userPoolId(userPoolId)
+                .username(username)
+                .userAttributes(attributes)
+                .build();
+
+        cognitoClient.adminUpdateUserAttributes(request);
+    }
+
 }
