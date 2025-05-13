@@ -26,60 +26,50 @@ public class CognitoServiceImpl implements CognitoService {
     private String clientId;
 
     @Override
-    public String registerUser(String name, String email, String phone) {
-        try {
-            // 1. Construir la solicitud de creación
-            AdminCreateUserRequest.Builder requestBuilder = AdminCreateUserRequest.builder()
-                    .userPoolId(userPoolId)
-                    .username(email)
-                    .desiredDeliveryMediums(DeliveryMediumType.EMAIL)
-                    .userAttributes(
-                            AttributeType.builder().name("name").value(name).build(),
-                            AttributeType.builder().name("email").value(email).build()
-                    );
+    public String registerUser(String name, String email, String phone) throws CognitoIdentityProviderException {
 
-            if (phone != null && !phone.isBlank()) {
-                requestBuilder.userAttributes(
-                        AttributeType.builder().name("phone_number").value(phone).build()
+        // 1. Construir la solicitud de creación
+        AdminCreateUserRequest.Builder requestBuilder = AdminCreateUserRequest.builder()
+                .userPoolId(userPoolId)
+                .username(email)
+                .desiredDeliveryMediums(DeliveryMediumType.EMAIL)
+                .userAttributes(
+                        AttributeType.builder().name("name").value(name).build(),
+                        AttributeType.builder().name("email").value(email).build()
                 );
-            }
 
-            // 2. Crear el usuario
-            AdminCreateUserResponse response = cognitoClient.adminCreateUser(requestBuilder.build());
-
-            // 3. Obtener el identificador único (sub)
-            String sub = response.user().attributes().stream()
-                    .filter(attr -> "sub".equals(attr.name()))
-                    .findFirst()
-                    .map(AttributeType::value)
-                    .orElseThrow(() -> new IllegalStateException("No se encontró el sub en Cognito"));
-
-            // 4. Actualizar atributos verificados
-            List<AttributeType> verifiedAttributes = new ArrayList<>();
-            verifiedAttributes.add(AttributeType.builder().name("email_verified").value("true").build());
-
-            if (phone != null && !phone.isBlank()) {
-                verifiedAttributes.add(AttributeType.builder().name("phone_number_verified").value("true").build());
-            }
-
-            AdminUpdateUserAttributesRequest updateRequest = AdminUpdateUserAttributesRequest.builder()
-                    .userPoolId(userPoolId)
-                    .username(email)
-                    .userAttributes(verifiedAttributes)
-                    .build();
-
-            cognitoClient.adminUpdateUserAttributes(updateRequest);
-
-            return sub;
-        } catch (UsernameExistsException e) {
-            log.error("El usuario ya existe en Cognito: {}", e.awsErrorDetails().errorMessage());
-            throw new BadRequestException("El usuario ya existe en Cognito", e);
-        } catch (InvalidParameterException e) {
-            log.error("Parámetro inválido al crear usuario en Cognito: {}", e.awsErrorDetails().errorMessage());
-            throw new BadRequestException("Parámetro inválido al registrar el usuario en Cognito", e);
-        } catch (CognitoIdentityProviderException e) {
-            log.error("Error al crear usuario en Cognito: {}", e.awsErrorDetails().errorMessage());
-            throw new RuntimeException("Error al registrar el usuario en Cognito", e);
+        if (phone != null && !phone.isBlank()) {
+            requestBuilder.userAttributes(
+                    AttributeType.builder().name("phone_number").value(phone).build()
+            );
         }
+
+        // 2. Crear el usuario
+        AdminCreateUserResponse response = cognitoClient.adminCreateUser(requestBuilder.build());
+
+        // 3. Obtener el identificador único (sub)
+        String sub = response.user().attributes().stream()
+                .filter(attr -> "sub".equals(attr.name()))
+                .findFirst()
+                .map(AttributeType::value)
+                .orElseThrow(() -> new IllegalStateException("No se encontró el sub en Cognito"));
+
+        // 4. Actualizar atributos verificados
+        List<AttributeType> verifiedAttributes = new ArrayList<>();
+        verifiedAttributes.add(AttributeType.builder().name("email_verified").value("true").build());
+
+        if (phone != null && !phone.isBlank()) {
+            verifiedAttributes.add(AttributeType.builder().name("phone_number_verified").value("true").build());
+        }
+
+        AdminUpdateUserAttributesRequest updateRequest = AdminUpdateUserAttributesRequest.builder()
+                .userPoolId(userPoolId)
+                .username(email)
+                .userAttributes(verifiedAttributes)
+                .build();
+
+        cognitoClient.adminUpdateUserAttributes(updateRequest);
+
+        return sub;
     }
 }
