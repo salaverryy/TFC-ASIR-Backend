@@ -1,5 +1,6 @@
 package com.salaverryandres.usermanagement.domain.service;
 
+import com.salaverryandres.usermanagement.application.dto.LoginResponseDto;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.CognitoIdentityProviderException;
 
 public interface CognitoService {
@@ -18,6 +19,8 @@ public interface CognitoService {
     void deleteUser(String username);
 
     void addUserToGroup(String username, String groupName);
+
+    LoginResponseDto login(String email, String password);
 
 }
 

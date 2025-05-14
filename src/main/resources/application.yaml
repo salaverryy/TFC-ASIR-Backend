@@ -9,3 +9,6 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: https://cognito-idp.${COGNITO_REGION}.amazonaws.com/${COGNITO_USER_POOL_ID}
+logging:
+  level:
+    org.springframework.security: DEBUG

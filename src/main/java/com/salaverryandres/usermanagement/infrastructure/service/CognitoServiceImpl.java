@@ -1,5 +1,8 @@
 package com.salaverryandres.usermanagement.infrastructure.service;
 
+import com.salaverryandres.usermanagement.application.dto.LoginResponseDto;
+import com.salaverryandres.usermanagement.application.exception.BadRequestException;
+import com.salaverryandres.usermanagement.application.exception.NotFoundException;
 import com.salaverryandres.usermanagement.domain.service.CognitoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +13,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -110,6 +114,45 @@ public class CognitoServiceImpl implements CognitoService {
                 .build();
 
         cognitoClient.adminAddUserToGroup(request);
+    }
+
+    @Override
+    public LoginResponseDto login(String email, String password) {
+        Map<String, String> authParams = Map.of(
+                "USERNAME", email,
+                "PASSWORD", password
+        );
+
+        InitiateAuthRequest request = InitiateAuthRequest.builder()
+                .authFlow(AuthFlowType.USER_PASSWORD_AUTH)
+                .authParameters(authParams)
+                .clientId(clientId)
+                .build();
+
+        try {
+            InitiateAuthResponse response = cognitoClient.initiateAuth(request);
+
+            if (response.challengeName() != null && response.challengeName().equals(ChallengeNameType.NEW_PASSWORD_REQUIRED.name())) {
+                throw new BadRequestException("Se requiere cambiar la contraseña");
+            }
+
+            AuthenticationResultType result = response.authenticationResult();
+
+            return LoginResponseDto.builder()
+                    .accessToken(result.accessToken())
+                    .idToken(result.idToken())
+                    .refreshToken(result.refreshToken())
+                    .expiresIn(result.expiresIn())
+                    .tokenType(result.tokenType())
+                    .build();
+
+        } catch (NotAuthorizedException e) {
+            throw new BadRequestException("Credenciales incorrectas");
+        } catch (UserNotFoundException e) {
+            throw new NotFoundException("Usuario no encontrado");
+        } catch (Exception e) {
+            throw new RuntimeException("Error al iniciar sesión", e);
+        }
     }
 
 }
