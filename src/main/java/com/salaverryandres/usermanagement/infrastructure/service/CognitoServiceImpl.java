@@ -101,4 +101,15 @@ public class CognitoServiceImpl implements CognitoService {
         cognitoClient.adminDeleteUser(request);
     }
 
+    @Override
+    public void addUserToGroup(String username, String groupName) {
+        AdminAddUserToGroupRequest request = AdminAddUserToGroupRequest.builder()
+                .userPoolId(userPoolId)
+                .username(username)
+                .groupName(groupName)
+                .build();
+
+        cognitoClient.adminAddUserToGroup(request);
+    }
+
 }

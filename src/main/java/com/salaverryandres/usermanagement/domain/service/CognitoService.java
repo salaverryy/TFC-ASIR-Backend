@@ -17,5 +17,7 @@ public interface CognitoService {
 
     void deleteUser(String username);
 
+    void addUserToGroup(String username, String groupName);
+
 }
 

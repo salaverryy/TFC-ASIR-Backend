@@ -4,6 +4,7 @@ import com.salaverryandres.usermanagement.application.exception.BadRequestExcept
 import com.salaverryandres.usermanagement.application.exception.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -33,6 +34,19 @@ public class GlobalExceptionHandler {
                         "status", HttpStatus.NOT_FOUND.value(),
                         "error", "Not Found",
                         "message", ex.getMessage()
+                )
+        );
+    }
+
+    // 403 - Acceso denegado
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<?> handleAccessDenied(AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "status", HttpStatus.FORBIDDEN.value(),
+                        "error", "Forbidden",
+                        "message", "No tienes permisos para acceder a este recurso"
                 )
         );
     }

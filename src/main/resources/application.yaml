@@ -3,3 +3,9 @@ aws:
     user-pool-id: ${COGNITO_USER_POOL_ID}
     client-id: ${COGNITO_CLIENT_ID}
     region: ${COGNITO_REGION}
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://cognito-idp.${COGNITO_REGION}.amazonaws.com/${COGNITO_USER_POOL_ID}
