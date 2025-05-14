@@ -2,14 +2,14 @@ package com.salaverryandres.usermanagement.domain.service;
 
 import com.salaverryandres.usermanagement.application.dto.UserCreateRequestDto;
 import com.salaverryandres.usermanagement.application.dto.UserDto;
-
-import java.util.List;
+import com.salaverryandres.usermanagement.application.dto.UserPageResponse;
+import org.springframework.data.domain.Pageable;
 
 public interface UserService {
 
     UserDto createUser(UserCreateRequestDto request);
 
-    List<UserDto> getAllUsers();
+    UserPageResponse getAllUsers(Pageable pageable);
 
     UserDto getUserByExternalId(String externalId);
 

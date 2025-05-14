@@ -2,6 +2,7 @@ package com.salaverryandres.usermanagement.infrastructure.service;
 
 import com.salaverryandres.usermanagement.application.dto.UserCreateRequestDto;
 import com.salaverryandres.usermanagement.application.dto.UserDto;
+import com.salaverryandres.usermanagement.application.dto.UserPageResponse;
 import com.salaverryandres.usermanagement.application.exception.BadRequestException;
 import com.salaverryandres.usermanagement.application.exception.NotFoundException;
 import com.salaverryandres.usermanagement.application.mapper.UserMapper;
@@ -12,10 +13,10 @@ import com.salaverryandres.usermanagement.domain.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -60,15 +61,23 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public List<UserDto> getAllUsers() {
-        return userMapper.toDtoList(userRepository.findAll());
+    public UserPageResponse getAllUsers(Pageable pageable) {
+        Page<UserEntity> page = userRepository.findAll(pageable);
+        return UserPageResponse.builder()
+                .users(userMapper.toDtoList(page.getContent()))
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .currentPage(page.getNumber())
+                .pageSize(page.getSize())
+                .build();
     }
+
 
     @Override
     public UserDto getUserByExternalId(String externalId) {
         return userRepository.findByExternalId(externalId)
                 .map(userMapper::toDto)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
     }
 
     @Override

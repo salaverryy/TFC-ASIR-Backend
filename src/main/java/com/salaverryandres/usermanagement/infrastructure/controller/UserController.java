@@ -2,9 +2,11 @@ package com.salaverryandres.usermanagement.infrastructure.controller;
 
 import com.salaverryandres.usermanagement.application.dto.UserCreateRequestDto;
 import com.salaverryandres.usermanagement.application.dto.UserDto;
+import com.salaverryandres.usermanagement.application.dto.UserPageResponse;
 import com.salaverryandres.usermanagement.domain.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,5 +40,17 @@ public class UserController {
         userService.deleteUser(externalId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{externalId}")
+    public ResponseEntity<UserDto> getUserByExternalId(@PathVariable String externalId) {
+        UserDto user = userService.getUserByExternalId(externalId);
+        return ResponseEntity.ok(user);
+    }
+
+    @GetMapping
+    public ResponseEntity<UserPageResponse> getAllUsers(Pageable pageable) {
+        return ResponseEntity.ok(userService.getAllUsers(pageable));
+    }
+
 
 }
