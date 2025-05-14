@@ -38,14 +38,17 @@ public class UserServiceImpl implements UserService {
                     request.getPhone()
             );
 
-            // 2. Convertir DTO a Entity y setear el externalId
+            // 2. Agregar el usuario al grupo USER en Cognito
+            cognitoService.addUserToGroup(request.getEmail(), "USER");
+
+            // 3. Convertir DTO a Entity y setear el externalId
             UserEntity entity = userMapper.toEntity(request);
             entity.setExternalId(externalId);
 
-            // 3. Guardar en la base de datos
+            // 4. Guardar en la base de datos
             UserEntity saved = userRepository.save(entity);
 
-            // 4. Retornar el resultado
+            // 5. Retornar el resultado
             return userMapper.toDto(saved);
         } catch (UsernameExistsException e) {
             log.error("El usuario ya existe en Cognito: {}", e.awsErrorDetails().errorMessage());
