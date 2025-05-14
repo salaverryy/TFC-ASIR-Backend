@@ -2,6 +2,7 @@ package com.salaverryandres.usermanagement.infrastructure.service;
 
 import com.salaverryandres.usermanagement.application.dto.LoginResponseDto;
 import com.salaverryandres.usermanagement.application.exception.BadRequestException;
+import com.salaverryandres.usermanagement.application.exception.ChallengeRequiredException;
 import com.salaverryandres.usermanagement.application.exception.NotFoundException;
 import com.salaverryandres.usermanagement.domain.service.CognitoService;
 import lombok.RequiredArgsConstructor;
@@ -132,11 +133,19 @@ public class CognitoServiceImpl implements CognitoService {
         try {
             InitiateAuthResponse response = cognitoClient.initiateAuth(request);
 
-            if (response.challengeName() != null && response.challengeName().equals(ChallengeNameType.NEW_PASSWORD_REQUIRED.name())) {
-                throw new BadRequestException("Se requiere cambiar la contraseña");
+            if (response.challengeName() == ChallengeNameType.NEW_PASSWORD_REQUIRED) {
+                // Devolvemos info útil para el frontend/backend
+                throw new ChallengeRequiredException(
+                        ChallengeNameType.NEW_PASSWORD_REQUIRED.name(),
+                        response.session(),
+                        "Se requiere cambiar la contraseña"
+                );
             }
 
             AuthenticationResultType result = response.authenticationResult();
+            if (result == null) {
+                throw new RuntimeException("Error inesperado: no se recibió token de autenticación");
+            }
 
             return LoginResponseDto.builder()
                     .accessToken(result.accessToken())
@@ -152,6 +161,41 @@ public class CognitoServiceImpl implements CognitoService {
             throw new NotFoundException("Usuario no encontrado");
         } catch (Exception e) {
             throw new RuntimeException("Error al iniciar sesión", e);
+        }
+    }
+
+    @Override
+    public LoginResponseDto respondToNewPasswordChallenge(String email, String newPassword, String session) {
+        try {
+            Map<String, String> challengeResponses = Map.of(
+                    "USERNAME", email,
+                    "NEW_PASSWORD", newPassword
+            );
+
+            RespondToAuthChallengeRequest challengeRequest = RespondToAuthChallengeRequest.builder()
+                    .challengeName(ChallengeNameType.NEW_PASSWORD_REQUIRED)
+                    .clientId(clientId)
+                    .challengeResponses(challengeResponses)
+                    .session(session)
+                    .build();
+
+            RespondToAuthChallengeResponse response = cognitoClient.respondToAuthChallenge(challengeRequest);
+            AuthenticationResultType result = response.authenticationResult();
+
+            return LoginResponseDto.builder()
+                    .accessToken(result.accessToken())
+                    .idToken(result.idToken())
+                    .refreshToken(result.refreshToken())
+                    .expiresIn(result.expiresIn())
+                    .tokenType(result.tokenType())
+                    .build();
+
+        } catch (NotAuthorizedException e) {
+            throw new BadRequestException("Credenciales inválidas");
+        } catch (InvalidPasswordException e) {
+            throw new BadRequestException("La nueva contraseña no cumple con los requisitos de seguridad");
+        } catch (Exception e) {
+            throw new RuntimeException("Error al cambiar la contraseña", e);
         }
     }
 

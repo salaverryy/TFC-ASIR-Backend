@@ -1,6 +1,7 @@
 package com.salaverryandres.usermanagement.infrastructure.exception;
 
 import com.salaverryandres.usermanagement.application.exception.BadRequestException;
+import com.salaverryandres.usermanagement.application.exception.ChallengeRequiredException;
 import com.salaverryandres.usermanagement.application.exception.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,6 +48,18 @@ public class GlobalExceptionHandler {
                         "status", HttpStatus.FORBIDDEN.value(),
                         "error", "Forbidden",
                         "message", "No tienes permisos para acceder a este recurso"
+                )
+        );
+    }
+
+    @ExceptionHandler(ChallengeRequiredException.class)
+    public ResponseEntity<?> handleChallenge(ChallengeRequiredException ex) {
+        return ResponseEntity.status(HttpStatus.PRECONDITION_REQUIRED).body(
+                Map.of(
+                        "challenge", ex.getChallenge(),
+                        "session", ex.getSession(),
+                        "message", ex.getMessage(),
+                        "timestamp", LocalDateTime.now()
                 )
         );
     }
