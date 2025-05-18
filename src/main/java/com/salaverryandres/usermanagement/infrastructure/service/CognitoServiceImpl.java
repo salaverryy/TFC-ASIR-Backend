@@ -199,4 +199,20 @@ public class CognitoServiceImpl implements CognitoService {
         }
     }
 
+    @Override
+    public void logout(String username) {
+        AdminUserGlobalSignOutRequest request = AdminUserGlobalSignOutRequest.builder()
+                .userPoolId(userPoolId)
+                .username(username)
+                .build();
+
+        try {
+            cognitoClient.adminUserGlobalSignOut(request);
+        } catch (UserNotFoundException e) {
+            throw new NotFoundException("Usuario no encontrado");
+        } catch (Exception e) {
+            throw new RuntimeException("Error al cerrar sesión", e);
+        }
+    }
+
 }

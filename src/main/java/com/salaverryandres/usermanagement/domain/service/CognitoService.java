@@ -24,5 +24,7 @@ public interface CognitoService {
 
     LoginResponseDto respondToNewPasswordChallenge(String email, String newPassword, String session);
 
+    void logout(String username);
+
 }
 

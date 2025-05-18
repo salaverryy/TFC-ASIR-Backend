@@ -7,6 +7,8 @@ import com.salaverryandres.usermanagement.domain.service.CognitoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +35,13 @@ public class AuthController {
                         request.getSession()
                 )
         );
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@AuthenticationPrincipal Jwt principal) {
+        String externalId = principal.getSubject(); // sub == username
+        cognitoService.logout(externalId);
+        return ResponseEntity.noContent().build();
     }
 
 }
