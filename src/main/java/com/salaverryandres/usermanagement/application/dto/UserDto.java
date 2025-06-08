@@ -1,8 +1,9 @@
 package com.salaverryandres.usermanagement.application.dto;
 
-import lombok.*;
-
-import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
@@ -12,7 +13,8 @@ public class UserDto {
     private Long id;
     private String externalId;
     private String name;
+    private String lastname;
     private String email;
     private String phone;
-    private Set<RoleDto> roles;
+    private String role;
 }

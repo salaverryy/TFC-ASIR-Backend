@@ -16,7 +16,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AliasExistsException;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.CognitoIdentityProviderException;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.InvalidParameterException;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.UserNotFoundException;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.UsernameExistsException;
 
 @Slf4j
 @Service
@@ -24,6 +28,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
 @Transactional
 public class UserServiceImpl implements UserService {
 
+    public static final String GROUP_NAME = "USER";
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final CognitoService cognitoService;
@@ -39,10 +44,11 @@ public class UserServiceImpl implements UserService {
             );
 
             // 2. Agregar el usuario al grupo USER en Cognito
-            cognitoService.addUserToGroup(request.getEmail(), "USER");
+            cognitoService.addUserToGroup(request.getEmail(), GROUP_NAME);
 
             // 3. Convertir DTO a Entity y setear el externalId
             UserEntity entity = userMapper.toEntity(request);
+            entity.setRole(GROUP_NAME);
             entity.setExternalId(externalId);
 
             // 4. Guardar en la base de datos
