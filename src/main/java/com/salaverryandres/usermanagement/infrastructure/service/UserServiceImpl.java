@@ -29,6 +29,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.UsernameExi
 public class UserServiceImpl implements UserService {
 
     public static final String GROUP_NAME = "USER";
+    public static final String USUARIO_NO_ENCONTRADO = "Usuario no encontrado";
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final CognitoService cognitoService;
@@ -64,7 +65,7 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("Parámetro inválido al registrar el usuario en Cognito", e);
         } catch (CognitoIdentityProviderException e) {
             log.error("Error al crear usuario en Cognito: {}", e.awsErrorDetails().errorMessage());
-            throw new RuntimeException("Error al registrar el usuario en Cognito", e);
+            throw new BadRequestException("Error al registrar el usuario en Cognito", e);
         }
     }
 
@@ -86,13 +87,13 @@ public class UserServiceImpl implements UserService {
     public UserDto getUserByExternalId(String externalId) {
         return userRepository.findByExternalId(externalId)
                 .map(userMapper::toDto)
-                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+                .orElseThrow(() -> new NotFoundException(USUARIO_NO_ENCONTRADO));
     }
 
     @Override
     public UserDto updateUser(String externalId, UserCreateRequestDto request) {
         UserEntity user = userRepository.findByExternalId(externalId)
-                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+                .orElseThrow(() -> new NotFoundException(USUARIO_NO_ENCONTRADO));
 
         try {
             cognitoService.updateUserAttributes(externalId, request.getName(), request.getEmail(), request.getPhone());
@@ -106,7 +107,7 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("Parámetro inválido al actualizar el usuario en Cognito", e);
         } catch (CognitoIdentityProviderException e) {
             log.error("Error al actualizar Cognito: {}", e.awsErrorDetails().errorMessage());
-            throw new RuntimeException("No se pudo actualizar el usuario en Cognito", e);
+            throw new BadRequestException("No se pudo actualizar el usuario en Cognito", e);
         }
 
         user.setName(request.getName());
@@ -120,7 +121,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(String externalId) {
         UserEntity user = userRepository.findByExternalId(externalId)
-                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+                .orElseThrow(() -> new NotFoundException(USUARIO_NO_ENCONTRADO));
 
         try {
             cognitoService.deleteUser(user.getEmail()); // usamos email como username en Cognito
@@ -128,7 +129,7 @@ public class UserServiceImpl implements UserService {
             throw new NotFoundException("Usuario no encontrado en Cognito");
         } catch (CognitoIdentityProviderException e) {
             log.error("Error al eliminar usuario en Cognito: {}", e.awsErrorDetails().errorMessage());
-            throw new RuntimeException("No se pudo eliminar el usuario en Cognito", e);
+            throw new BadRequestException("No se pudo eliminar el usuario en Cognito", e);
         }
 
         userRepository.delete(user);
