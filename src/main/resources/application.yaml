@@ -9,6 +9,16 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: https://cognito-idp.${COGNITO_REGION}.amazonaws.com/${COGNITO_USER_POOL_ID}
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+    jpa:
+      hibernate:
+        ddl-auto: update
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        show-sql: true
 logging:
   level:
     org.springframework.security: DEBUG
